@@ -17,12 +17,18 @@
                 <p class="cp-hint">
                     Controls what metrics are collected (backend) and displayed (frontend). Higher levels add more detail but increase overhead.
                 </p>
+                <p class="cp-hint" aria-live="polite">
+                    Backend collection: {{ backendObservabilityLabel }}. Browser telemetry: {{ OBS_LEVEL_LABELS[store.obsLevel] }}.
+                    <span v-if="!canSetObservability">Changing the backend level requires provider-support access; these controls are read-only for this role.</span>
+                </p>
                 <div class="cp-level-grid">
                     <button
                         v-for="(desc, i) in obsLevelDescriptions"
                         :key="i"
                         class="cp-level-btn"
                         :class="store.obsLevel === i ? levelActiveClass(i) : 'cp-level-btn--inactive'"
+                        :disabled="!canSetObservability"
+                        :title="!canSetObservability ? 'Requires provider-support permission' : undefined"
                         @click="store.changeLevel(i as ObsLevel)"
                     >
                         <div class="cp-level-name">{{ OBS_LEVEL_LABELS[i] }}</div>
@@ -343,6 +349,7 @@ import BasicBlock from '@/components/core/BasicBlock.vue';
 import PageTemplate from '@/components/core/PageTemplate.vue';
 import MonitoringSectionHeader from '@/components/monitoring/MonitoringSectionHeader.vue';
 import {formatMs} from '@/helpers/format';
+import {formatBackendObservabilityLevel} from '@/helpers/monitoringObservability';
 import {useRpcPermissions} from '@/helpers/rpcPermissions';
 import {useLogStore} from '@/stores/console';
 import {useMonitoringStore} from '@/stores/monitoring';
@@ -367,6 +374,10 @@ const store = useMonitoringStore();
 const rpc = useRpcPermissions();
 const logStore = useLogStore();
 const canToggleDbWrites = computed(() => rpc.canCall('System.DbWrites.Set'));
+const canSetObservability = computed(() => rpc.canCall('System.Observability.Set'));
+const backendObservabilityLabel = computed(() =>
+    formatBackendObservabilityLevel(store.latestMetrics?.level, OBS_LEVEL_LABELS)
+);
 
 const heatmapOn = ref(isHeatmapEnabled());
 function toggleHeatmap(v: boolean) {
@@ -695,6 +706,11 @@ store.fetchLogLevels();
     font-size: var(--type-caption);
     margin-top: var(--gap-xs);
     opacity: 0.75;
+}
+
+.cp-level-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
 }
 
 .cp-level-btn--inactive {
