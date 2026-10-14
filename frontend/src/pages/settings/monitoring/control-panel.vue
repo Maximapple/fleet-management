@@ -22,6 +22,7 @@
                     Browser telemetry (this browser): {{ OBS_LEVEL_LABELS[store.obsLevel] }}.
                     <span v-if="!canSetObservability">Changing the backend level requires provider-support access; these server controls are read-only for this role.</span>
                 </p>
+                <p class="cp-hint">Backend collection level (all users, server-side):</p>
                 <div class="cp-level-grid" role="group" aria-label="Backend observability level">
                     <button
                         v-for="(desc, i) in obsLevelDescriptions"
@@ -31,10 +32,26 @@
                         :aria-pressed="backendObservabilityLevel === i"
                         :disabled="!canSetObservability"
                         :title="!canSetObservability ? 'Requires provider-support permission' : undefined"
-                        @click="store.changeLevel(i as ObsLevel)"
+                        @click="store.setBackendObservabilityLevel(i as ObsLevel)"
                     >
                         <div class="cp-level-name">{{ OBS_LEVEL_LABELS[i] }}</div>
                         <div class="cp-level-desc">{{ desc }}</div>
+                        <div v-if="backendObservabilityLevel === i" class="cp-level-current">Current backend level</div>
+                    </button>
+                </div>
+                <p class="cp-hint">Browser telemetry (only this browser; no server permission required):</p>
+                <div class="cp-level-grid" role="group" aria-label="Browser telemetry level">
+                    <button
+                        v-for="(desc, i) in obsLevelDescriptions"
+                        :key="i"
+                        class="cp-level-btn"
+                        :class="store.obsLevel === i ? levelActiveClass(i) : 'cp-level-btn--inactive'"
+                        :aria-pressed="store.obsLevel === i"
+                        @click="store.setBrowserObservabilityLevel(i as ObsLevel)"
+                    >
+                        <div class="cp-level-name">{{ OBS_LEVEL_LABELS[i] }}</div>
+                        <div class="cp-level-desc">{{ desc }}</div>
+                        <div v-if="store.obsLevel === i" class="cp-level-current">Current browser level</div>
                     </button>
                 </div>
             </div>
@@ -714,6 +731,11 @@ store.fetchLogLevels();
     font-size: var(--type-caption);
     margin-top: var(--gap-xs);
     opacity: 0.75;
+}
+.cp-level-current {
+    font-size: var(--type-caption);
+    margin-top: var(--gap-xs);
+    font-weight: var(--font-semibold);
 }
 
 .cp-level-btn:disabled {

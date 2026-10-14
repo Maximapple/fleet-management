@@ -21,3 +21,14 @@ export function parseBackendObservabilityLevel(
         ? backendLevel
         : null;
 }
+
+/** A browser-local telemetry change must never implicitly send this RPC. */
+export async function sendAuthorizedBackendObservabilityLevel(
+    level: number,
+    canCall: () => boolean,
+    send: (level: number) => Promise<unknown>
+): Promise<boolean> {
+    if (!canCall()) return false;
+    await send(level);
+    return true;
+}
