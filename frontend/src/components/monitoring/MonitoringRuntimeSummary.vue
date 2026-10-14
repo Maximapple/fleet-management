@@ -98,6 +98,9 @@ const containerStatusClass = computed(() => {
     if (!view.value.containerSummary.statusVerified) {
         return runtimeStatusClass('unknown');
     }
+    if (view.value.containerSummary.running !== view.value.containerSummary.expected) {
+        return runtimeStatusClass('warning');
+    }
     return runtimeStatusClass('ok');
 });
 
@@ -107,12 +110,13 @@ const containerStatusLabel = computed(() => {
 });
 
 const containerProblemLabel = computed(() => {
-    const {missing, unexpected, unknownOwner, statusVerified} =
+    const {missing, unexpected, unknownOwner, expected, running, statusVerified} =
         view.value.containerSummary;
     if (missing > 0 || unexpected > 0 || unknownOwner > 0) {
         return `${missing} missing, ${unexpected} unexpected, ${unknownOwner} unknown-owner`;
     }
     if (!statusVerified) return 'live container status not reported by manifest';
+    if (running !== expected) return 'reported running count differs from expected inventory';
     return 'expected containers accounted for';
 });
 
