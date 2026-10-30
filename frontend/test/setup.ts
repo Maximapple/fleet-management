@@ -1,1 +1,1 @@
-// Vitest requires this setup entrypoint. Pure unit tests need no global mocks.
+// Shared Vitest setup. Individual tests own the browser state they need.
